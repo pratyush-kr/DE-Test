@@ -22,12 +22,12 @@ class ChatView(viewsets.ModelViewSet):
         query = message
         prompt += [{"role": "user", "content": f'{query}'}]
         res = generate_prompt(prompt)
+        gpt_response = GPTResponseData.objects.create()
+        gpt_response.message = res
+        gpt_response.save()
         matches = re.findall(r'```json\n(.+)```\n', res, flags=re.DOTALL | re.MULTILINE)
         data = dict()
         for match in matches:
-            data['response'] = json.loads(match)
-            gpt_response = GPTResponseData.objects.create()
-            gpt_response.message = match
-            gpt_response.save()
+            data['response'] = json.loads(re.sub(r"//.+?\n", "", match))
 
         return Response(data, status=status.HTTP_200_OK)
