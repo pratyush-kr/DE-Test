@@ -3,9 +3,13 @@ from testapi.settings import PROMPT
 from app.Services import generate_prompt
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from app.models import Chat
+from app.Serializers import ChatSerializer
 
 
 class ChatView(viewsets.ModelViewSet):
+    queryset = Chat.objects.all()
+    serializer_class = ChatSerializer
 
     @action(methods=["POST"], detail=False)
     def chat(self, request):
