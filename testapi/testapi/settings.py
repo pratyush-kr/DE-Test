@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import openai
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -134,5 +135,21 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+formatToFollow = """
+Create test cases including null empty strings and injection attack and wrong values for given payload,
+can you use this json format
+[
+    {
+        "testCases": "string",
+        "payload": {any_payload},
+        "expectedResult": "string"
+    }
+]
+"""
 
-PROMPT = {"role": "system", "content": "Create test cases including null empty strings and injection attack for given payload."}
+PROMPT = {"role": "system", "content": formatToFollow}
+
+openai.organization = os.environ.get('OPENAI_ORG')
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+print(f'organization: {openai.organization}')
+print(f'api_key: {openai.api_key}')
