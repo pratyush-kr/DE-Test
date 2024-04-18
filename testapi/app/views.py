@@ -12,10 +12,12 @@ class ChatView(viewsets.ModelViewSet):
     serializer_class = ChatSerializer
 
     @action(methods=["POST"], detail=False)
-    def chat(self, request):
+    def get_test_cases(self, request):
         message = request.data['message']
+        print(message)
         prompt = [PROMPT]
         query = message
         prompt += [{"role": "user", "content": query}]
         res = generate_prompt(prompt)
+        print(res)
         return Response({'message': res}, status=status.HTTP_200_OK)

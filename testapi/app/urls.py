@@ -8,7 +8,6 @@ router = routers.DefaultRouter()
 
 router.register('chat', views.ChatView)
 
-
 urlpatterns = [
     path('', include(router.urls)),
 ]
