@@ -134,6 +134,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-openai.organization = 'org-0j9KBm9IU6N30kFPhr9hyq6l'
-openai.api_key = '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'
+
 PROMPT = {"role": "system", "content": "Create test cases including null empty strings and injection attack for given payload."}
