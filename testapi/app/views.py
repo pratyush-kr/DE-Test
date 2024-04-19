@@ -1,9 +1,7 @@
-from httpcore import Request
 from rest_framework import viewsets, status
-
 from testapi.ManualRequest import ManualRequest
 from testapi.settings import PROMPT
-from app.Services import generate_prompt
+from app.Services import generate_prompt, automated_test
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from app.models import Chat, User, Demo
@@ -12,7 +10,6 @@ from app.models import GPTResponseData
 from django.views.decorators.csrf import csrf_exempt
 import re
 import json
-import requests
 
 
 class ChatView(viewsets.ModelViewSet):
@@ -33,9 +30,16 @@ class ChatView(viewsets.ModelViewSet):
         matches = re.findall(r'```json\n(.+)```\n', res, flags=re.DOTALL | re.MULTILINE)
         data = dict()
         for match in matches:
-            data['requests'] = json.loads(re.sub(r"//.+?\n", "", match))
-
-        return Response(data, status=status.HTTP_200_OK)
+            array = json.loads(re.sub(r"//.+?\n", "", match))
+            i = 1
+            for element in array:
+                element['testCases'] = f"Test Case {i} {element['testCases']}"
+                i += 1
+            data = array
+        if request.headers['scenario'] == "automatic":
+            res = automated_test(data, userView=UserView())
+            return Response(res, status=status.HTTP_200_OK)
+        return Response({"requests": data}, status=status.HTTP_200_OK)
 
 
 class UserView(viewsets.ModelViewSet):
@@ -69,7 +73,7 @@ class DemoView(viewsets.ModelViewSet):
         i = 1
         for req in requests_list:
             data = dict()
-            data['scenario'] = f"Test Case: {i}: " + req['testCases']
+            data['scenario'] = req['testCases']
             data['request'] = req['payload']
             manualRequest.data = req['payload']
             try:
