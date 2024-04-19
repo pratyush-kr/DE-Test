@@ -1,13 +1,18 @@
+from httpcore import Request
 from rest_framework import viewsets, status
+
+from testapi.ManualRequest import ManualRequest
 from testapi.settings import PROMPT
 from app.Services import generate_prompt
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from app.models import Chat
-from app.Serializers import ChatSerializer
+from app.models import Chat, User, Demo
+from app.Serializers import ChatSerializer, UserSerializer, DemoSerializer
 from app.models import GPTResponseData
+from django.views.decorators.csrf import csrf_exempt
 import re
 import json
+import requests
 
 
 class ChatView(viewsets.ModelViewSet):
@@ -28,6 +33,50 @@ class ChatView(viewsets.ModelViewSet):
         matches = re.findall(r'```json\n(.+)```\n', res, flags=re.DOTALL | re.MULTILINE)
         data = dict()
         for match in matches:
-            data['response'] = json.loads(re.sub(r"//.+?\n", "", match))
+            data['requests'] = json.loads(re.sub(r"//.+?\n", "", match))
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class UserView(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+
+    @action(methods=["POST"], detail=False)
+    def login(self, request):
+        username = request.data['username']
+        password = request.data['password']
+        # address = request.data['address']
+        # job_desc = request.data['jobDesc']
+        user = User.objects.get(username=username)
+        if user is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"data": "Login Successful"}, status=status.HTTP_200_OK)
+
+
+class DemoView(viewsets.ModelViewSet):
+    serializer_class = DemoSerializer
+    queryset = Demo.objects.all()
+
+    @csrf_exempt
+    @action(methods=["POST"], detail=False)
+    def test_requests(self, request):
+        requests_list = request.data['requests']
+        response = []
+        userView = UserView()
+        manualRequest = ManualRequest()
+        i = 1
+        for req in requests_list:
+            data = dict()
+            data['scenario'] = f"Test Case: {i}: " + req['testCases']
+            data['request'] = req['payload']
+            manualRequest.data = req['payload']
+            try:
+                res = userView.login(manualRequest)
+                data['response'] = res.data
+            except Exception as e:
+                data['response'] = {"error": f'API failed with error: {e}'}
+            response.append(data)
+            i += 1
+        return Response({"data": response}, status=status.HTTP_200_OK)

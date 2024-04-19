@@ -7,6 +7,8 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 
 router.register('chat', views.ChatView)
+router.register('user', views.UserView)
+router.register('demo', views.DemoView)
 
 urlpatterns = [
     path('', include(router.urls)),

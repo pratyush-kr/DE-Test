@@ -14,6 +14,8 @@ from pathlib import Path
 import openai
 import os
 
+from django.middleware.csrf import CsrfViewMiddleware
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
