@@ -1,7 +1,5 @@
 import openai
 from testapi import ManualRequest
-from rest_framework.response import Response
-from rest_framework import status
 
 
 def generate_prompt(prompt_):
